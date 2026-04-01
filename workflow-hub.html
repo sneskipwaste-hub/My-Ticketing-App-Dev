@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkFlow Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE6;
+    --border: #E2DDD5;
+    --border2: #CBC5BB;
+    --text: #1A1714;
+    --text2: #6B6560;
+    --text3: #9E9890;
+    --accent: #2A5C45;
+    --accent-light: #E8F2EC;
+    --accent-text: #1D4231;
+    --warn: #92400E;
+    --warn-bg: #FEF3C7;
+    --danger: #991B1B;
+    --danger-bg: #FEE2E2;
+    --info: #1E3A5F;
+    --info-bg: #DBEAFE;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+  /* LAYOUT */
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 0; flex-shrink: 0; position: fixed; top: 0; bottom: 0; left: 0; z-index: 10; }
+  .main { margin-left: 220px; flex: 1; padding: 32px; max-width: 1100px; }
+
+  /* SIDEBAR */
+  .logo { padding: 24px 20px 20px; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .nav { padding: 12px 10px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text2); font-size: 13px; font-weight: 400; transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent-text); font-weight: 500; }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; }
+  .nav-badge { margin-left: auto; font-size: 10px; font-family: var(--mono); background: var(--accent); color: white; padding: 1px 6px; border-radius: 20px; font-weight: 500; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .api-status { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; }
+
+  /* PANELS */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+  .page-sub { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .stat-n { font-size: 28px; font-weight: 600; letter-spacing: -1px; color: var(--text); font-family: var(--mono); }
+  .stat-l { font-size: 12px; color: var(--text2); margin-top: 4px; }
+  .stat-card.accent { background: var(--accent); border-color: var(--accent); }
+  .stat-card.accent .stat-n, .stat-card.accent .stat-l { color: white; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* BUTTONS */
+  .btn { padding: 8px 16px; font-size: 13px; font-family: var(--font); font-weight: 500; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; border: 1px solid var(--border2); background: var(--surface); color: var(--text); }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.88; background: var(--accent); }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-ghost { border-color: transparent; background: transparent; color: var(--text2); }
+  .btn-ghost:hover { background: var(--bg); color: var(--text); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+  /* FORM */
+  label { font-size: 12px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 5px; }
+  input[type=text], input[type=email], input[type=password], select, textarea {
+    width: 100%; padding: 9px 12px; font-size: 13px; font-family: var(--font);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text); outline: none; transition: border 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 90px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-field { margin-bottom: 14px; }
+
+  /* TABLE */
+  .table-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 14px; background: var(--bg); border-bottom: 1px solid var(--border); }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--bg); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; font-family: var(--mono); }
+  .badge-new { background: var(--info-bg); color: var(--info); }
+  .badge-open { background: var(--warn-bg); color: var(--warn); }
+  .badge-closed { background: var(--accent-light); color: var(--accent-text); }
+  .badge-pending { background: var(--surface2); color: var(--text2); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger); }
+
+  /* AVATAR */
+  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-light); color: var(--accent-text); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* UPLOAD ZONE */
+  .upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 28px; text-align: center; cursor: pointer; transition: all 0.15s; background: var(--bg); }
+  .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+  .upload-icon { font-size: 28px; margin-bottom: 8px; }
+  .upload-label { font-size: 13px; color: var(--text2); }
+  .upload-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* AI RESULT */
+  .ai-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 13px; line-height: 1.6; }
+  .ai-section-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 8px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: white; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; font-family: var(--mono); }
+  .step-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* NOTIFICATION */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: white; padding: 11px 18px; border-radius: var(--radius-sm); font-size: 13px; z-index: 1000; opacity: 0; transform: translateY(10px); transition: all 0.25s; pointer-events: none; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* API KEY SETUP */
+  .setup-overlay { position: fixed; inset: 0; background: rgba(26,23,20,0.55); z-index: 100; display: flex; align-items: center; justify-content: center; }
+  .setup-box { background: var(--surface); border-radius: 14px; padding: 32px; max-width: 460px; width: 90%; box-shadow: var(--shadow-md); }
+  .setup-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .setup-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; line-height: 1.6; }
+  .setup-steps { background: var(--bg); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 20px; }
+  .setup-step { font-size: 12px; color: var(--text2); margin-bottom: 6px; display: flex; gap: 8px; }
+  .setup-step:last-child { margin-bottom: 0; }
+  .setup-step span { color: var(--accent); font-weight: 600; }
+  .hint { font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+  /* SEARCH */
+  .search-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+  .search-row input { max-width: 280px; }
+  .search-row select { max-width: 160px; }
+
+  /* MISC */
+  .mono { font-family: var(--mono); font-size: 12px; }
+  .muted { color: var(--text2); }
+  .client-cell { display: flex; align-items: center; gap: 10px; }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- API KEY SETUP OVERLAY -->
+<div class="setup-overlay" id="setup-overlay">
+  <div class="setup-box">
+    <div class="setup-title">Welcome to WorkFlow Hub</div>
+    <div class="setup-sub">To power the AI features (email analysis, smart drafting, process suggestions), you need a free Anthropic API key. Your key is saved only in your browser.</div>
+    <div class="setup-steps">
+      <div class="setup-step"><span>1.</span> Go to <strong>console.anthropic.com</strong> and sign up for free</div>
+      <div class="setup-step"><span>2.</span> Click <strong>API Keys</strong> → <strong>Create Key</strong></div>
+      <div class="setup-step"><span>3.</span> Copy the key (starts with <code>sk-ant-...</code>) and paste below</div>
+    </div>
+    <div class="form-field">
+      <label>Your Anthropic API key</label>
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off">
+      <div class="hint">Stored locally in your browser only — never sent anywhere except Anthropic's API.</div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-primary" onclick="saveApiKey()" style="flex:1">Save & continue</button>
+      <button class="btn" onclick="skipSetup()">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SHELL -->
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">WorkFlow Hub</div>
+      <div class="logo-sub">Client &amp; ticket management</div>
+    </div>
+    <nav class="nav">
+      <button class="nav-item active" onclick="goto('dashboard')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item" onclick="goto('inbox')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 4 6-4"/><rect x="1" y="3" width="14" height="10" rx="1.5"/></svg>
+        Email inbox
+        <span class="nav-badge" id="nb-inbox">0</span>
+      </button>
+      <button class="nav-item" onclick="goto('tickets')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/><rect x="1" y="1" width="14" height="14" rx="1.5"/></svg>
+        Tickets
+        <span class="nav-badge" id="nb-tickets">0</span>
+      </button>
+      <button class="nav-item" onclick="goto('clients')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+        Clients
+      </button>
+      <button class="nav-item" onclick="goto('compose')">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l2 2-9 9H3v-2L12 2z"/></svg>
+        Compose
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="api-status"><div class="dot" id="api-dot" style="background:#e5e7eb"></div><span id="api-label">No API key set</span></div>
+      <button class="btn btn-sm btn-ghost" style="margin-top:8px;width:100%;justify-content:flex-start" onclick="document.getElementById('setup-overlay').style.display='flex'">Change API key</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Hey Sendry 👋</div>
+          <div class="page-sub">Welcome back — here's your dashboard overview</div>
+        </div>
+        <button class="btn btn-primary" onclick="goto('inbox')">+ Analyse email</button>
+      </div>
+      <div class="stats">
+        <div class="stat-card accent"><div class="stat-n" id="ds-clients">0</div><div class="stat-l">Active clients</div></div>
+        <div class="stat-card"><div class="stat-n" id="ds-total">0</div><div class="stat-l">Total tickets</div></div>
+        <div class="stat-card"><div class="stat-n" id="ds-open">0</div><div class="stat-l">Open / New</div></div>
+        <div class="stat-card"><div class="stat-n" id="ds-pending">0</div><div class="stat-l">Pending reply</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div class="card-title" style="margin-bottom:10px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Recent tickets</div>
+          <div class="table-wrap"><table><thead><tr><th>Ref</th><th>Client</th><th>Status</th></tr></thead><tbody id="dash-tickets"></tbody></table></div>
+        </div>
+        <div>
+          <div class="card-title" style="margin-bottom:10px;font-size:12px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em">Clients at a glance</div>
+          <div class="table-wrap"><table><thead><tr><th>Client</th><th>Account</th><th>Open</th></tr></thead><tbody id="dash-clients"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INBOX -->
+    <div class="panel" id="panel-inbox">
+      <div class="page-header">
+        <div><div class="page-title">Email inbox</div><div class="page-sub">Upload an email + attachment — AI reads everything and tells you exactly what to do</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Upload or paste email</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+              <div class="upload-icon">📧</div>
+              <div class="upload-label">Email file</div>
+              <div class="upload-sub">.eml · .txt · .msg</div>
+            </div>
+            <input type="file" id="file-input" style="display:none" accept=".eml,.txt,.msg" onchange="handleFile(event)">
+            <div id="email-file-name" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center"></div>
+          </div>
+          <div>
+            <div class="upload-zone" onclick="document.getElementById('attach-input').click()" ondragover="event.preventDefault()" ondrop="handleAttachDrop(event)" style="cursor:pointer">
+              <div class="upload-icon">📎</div>
+              <div class="upload-label">Attachment (optional)</div>
+              <div class="upload-sub">.pdf · .txt · .png · .jpg</div>
+            </div>
+            <input type="file" id="attach-input" style="display:none" accept=".pdf,.txt,.png,.jpg,.jpeg" onchange="handleAttach(event)">
+            <div id="attach-file-name" style="font-size:11px;color:var(--accent);margin-top:6px;text-align:center"></div>
+          </div>
+        </div>
+        <div style="margin:10px 0;text-align:center;font-size:12px;color:var(--text3)">— or paste email content below —</div>
+        <textarea id="email-paste" placeholder="Paste the full email here including From, To, Subject and body..."></textarea>
+
+        <div style="margin-top:12px">
+          <label>Link to existing ticket (optional)</label>
+          <select id="inbox-ticket-link">
+            <option value="">— open a new ticket —</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="analyzeEmail()" id="analyse-btn">Analyse with AI</button>
+          <button class="btn" onclick="clearInbox()">Clear</button>
+        </div>
+      </div>
+
+      <div id="ai-analysis" style="display:none">
+        <div class="card">
+          <div class="card-title">📋 What the AI detected</div>
+
+          <!-- DETECTION GRID -->
+          <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px" id="detect-grid"></div>
+
+          <!-- KEY INFO EXTRACTED -->
+          <div class="ai-section-label">Key information extracted</div>
+          <div class="ai-box" id="ai-keyinfo-box" style="margin-bottom:14px"></div>
+
+          <!-- ATTACHMENT READING -->
+          <div id="attach-section" style="display:none">
+            <div class="ai-section-label">Attachment contents read</div>
+            <div class="ai-box" id="ai-attach-box" style="margin-bottom:14px;font-size:12px;max-height:140px;overflow-y:auto;white-space:pre-wrap"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- PROCESS FLOW -->
+          <div class="ai-section-label">Suggested process — step by step</div>
+          <div id="ai-steps-box" style="margin-bottom:14px"></div>
+
+          <div class="divider"></div>
+
+          <!-- REPLY DRAFT -->
+          <div class="ai-section-label" style="margin-bottom:8px">Suggested reply</div>
+          <div class="ai-box" id="ai-reply-box" style="white-space:pre-wrap;font-size:12px;max-height:180px;overflow-y:auto"></div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="createTicketFromEmail()" id="ticket-action-btn">Create ticket</button>
+            <button class="btn" onclick="loadReplyToCompose()">Edit &amp; send reply</button>
+            <button class="btn btn-ghost" onclick="clearAnalysis()">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TICKETS -->
+    <div class="panel" id="panel-tickets">
+      <div class="page-header">
+        <div><div class="page-title">Tickets</div><div class="page-sub">Track all support and project requests</div></div>
+        <button class="btn btn-primary" onclick="showTicketForm()">+ New ticket</button>
+      </div>
+      <div id="ticket-list-view">
+        <div class="search-row">
+          <input type="text" id="t-search" placeholder="Search tickets..." oninput="renderTickets()">
+          <select id="t-filter-status" onchange="renderTickets()"><option value="">All statuses</option><option>New</option><option>Open</option><option>Pending</option><option>Closed</option></select>
+          <select id="t-filter-client" onchange="renderTickets()"><option value="">All clients</option></select>
+          <button class="btn btn-sm btn-ghost" onclick="renderTickets()" style="margin-left:auto">Refresh</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Ref #</th><th>Client</th><th>Subject</th><th>Type</th><th>Status</th><th>Date</th><th></th></tr></thead>
+          <tbody id="ticket-body"></tbody>
+        </table></div>
+      </div>
+      <div id="ticket-form-view" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button class="btn" onclick="hideTicketForm()">← Back</button>
+          <div class="page-title" style="font-size:18px" id="tf-title">New ticket</div>
+        </div>
+        <div class="card">
+          <div class="form-grid">
+            <div><label>Reference #</label><input type="text" id="tf-ref" placeholder="Auto-generated" readonly style="background:var(--bg)"></div>
+            <div><label>Client</label><select id="tf-client"></select></div>
+          </div>
+          <div class="form-field"><label>Subject</label><input type="text" id="tf-subject" placeholder="Brief description of the issue"></div>
+          <div class="form-grid">
+            <div><label>Type</label>
+              <select id="tf-type">
+                <option>Tech support</option><option>Billing</option><option>Project</option>
+                <option>Onboarding</option><option>Complaint</option><option>General query</option>
+              </select>
+            </div>
+            <div><label>Status</label>
+              <select id="tf-status"><option>New</option><option>Open</option><option>Pending</option><option>Closed</option></select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div><label>Account number</label><input type="text" id="tf-account" placeholder="Pulls from client" readonly style="background:var(--bg)"></div>
+            <div><label>Due date</label><input type="text" id="tf-date" placeholder="YYYY-MM-DD"></div>
+          </div>
+          <div class="form-field"><label>Notes</label><textarea id="tf-notes" placeholder="Details, context, actions taken so far..."></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveTicket()">Save ticket</button>
+            <button class="btn btn-ghost" onclick="hideTicketForm()">Cancel</button>
+            <button class="btn" id="tf-delete-btn" style="display:none;margin-left:auto;color:var(--danger);border-color:var(--danger)" onclick="deleteTicket()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CLIENTS -->
+    <div class="panel" id="panel-clients">
+      <div class="page-header">
+        <div><div class="page-title">Clients</div><div class="page-sub">Your client database</div></div>
+        <button class="btn btn-primary" onclick="showClientForm()">+ Add client</button>
+      </div>
+      <div id="client-list-view">
+        <div class="search-row">
+          <input type="text" id="c-search" placeholder="Search by name, account, contact..." oninput="renderClients()">
+          <select id="c-filter-status" onchange="renderClients()"><option value="">All statuses</option><option>Active</option><option>Inactive</option><option>On hold</option></select>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Client</th><th>Account #</th><th>Contact</th><th>Email</th><th>Tickets</th><th>Status</th><th></th></tr></thead>
+          <tbody id="client-body"></tbody>
+        </table></div>
+      </div>
+      <div id="client-form-view" style="display:none">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <button class="btn" onclick="hideClientForm()">← Back</button>
+          <div class="page-title" style="font-size:18px" id="cf-title">Add client</div>
+        </div>
+        <div class="card">
+          <div class="form-grid">
+            <div><label>Client / company name *</label><input type="text" id="cf-name" placeholder="e.g. Acme Corp"></div>
+            <div><label>Account number</label><input type="text" id="cf-account" placeholder="e.g. ACC-0042"></div>
+          </div>
+          <div class="form-grid">
+            <div><label>Contact person</label><input type="text" id="cf-contact" placeholder="Full name"></div>
+            <div><label>Email address</label><input type="email" id="cf-email" placeholder="contact@company.com"></div>
+          </div>
+          <div class="form-grid">
+            <div><label>Phone</label><input type="text" id="cf-phone" placeholder="+27 ..."></div>
+            <div><label>Status</label><select id="cf-status"><option>Active</option><option>Inactive</option><option>On hold</option></select></div>
+          </div>
+          <div class="form-field"><label>Notes</label><textarea id="cf-notes" placeholder="Any useful context about this client..."></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveClient()">Save client</button>
+            <button class="btn btn-ghost" onclick="hideClientForm()">Cancel</button>
+            <button class="btn" id="cf-delete-btn" style="display:none;margin-left:auto;color:var(--danger);border-color:var(--danger)" onclick="deleteClient()">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPOSE -->
+    <div class="panel" id="panel-compose">
+      <div class="page-header">
+        <div><div class="page-title">Compose</div><div class="page-sub">AI-drafted professional emails for any situation</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Email details</div>
+        <div class="form-grid">
+          <div><label>Client</label><select id="comp-client" onchange="fillComposeClient()"><option value="">Select client...</option></select></div>
+          <div><label>To email</label><input type="email" id="comp-to" placeholder="recipient@email.com"></div>
+        </div>
+        <div class="form-grid">
+          <div><label>Ticket reference</label><input type="text" id="comp-ref" placeholder="e.g. TKT-001 (optional)"></div>
+          <div><label>Email type</label>
+            <select id="comp-type">
+              <option value="reply">Client reply</option>
+              <option value="update">Status update</option>
+              <option value="resolution">Resolution / close</option>
+              <option value="escalation">Escalation notice</option>
+              <option value="followup">Follow-up</option>
+              <option value="onboarding">Onboarding welcome</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field"><label>Key points / context for the AI</label><textarea id="comp-context" placeholder="What should this email say? Include key facts, the tone you want, any actions you're taking, deadlines, etc."></textarea></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="generateEmail()" id="gen-btn">Generate with AI</button>
+          <button class="btn btn-ghost" onclick="clearCompose()">Clear</button>
+        </div>
+      </div>
+      <div id="compose-result" style="display:none">
+        <div class="card">
+          <div class="card-title">Generated email — edit before sending</div>
+          <div class="form-field"><label>Subject line</label><input type="text" id="comp-subject"></div>
+          <div class="form-field"><label>Email body</label><textarea id="comp-body" style="min-height:240px"></textarea></div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="openInGmail()">Open in Gmail ↗</button>
+            <button class="btn" onclick="copyEmail()">Copy to clipboard</button>
+            <button class="btn btn-ghost" onclick="generateEmail()">Regenerate</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+let clients = JSON.parse(localStorage.getItem('wfh_clients') || '[]');
+let tickets = JSON.parse(localStorage.getItem('wfh_tickets') || '[]');
+let apiKey = localStorage.getItem('wfh_apikey') || '';
+let editingClientId = null;
+let editingTicketId = null;
+let lastAnalysis = {};
+
+// Seed demo data if empty
+if (!clients.length) {
+  clients = [
+    {id:1,name:"Nexus Holdings",account:"ACC-0041",contact:"Sarah Dlamini",email:"sarah@nexus.co.za",phone:"+27 82 111 2233",status:"Active",notes:"Long-term enterprise client"},
+    {id:2,name:"Bright Future NGO",account:"ACC-0042",contact:"Thabo Molefe",email:"thabo@brightfuture.org",phone:"+27 71 555 6677",status:"Active",notes:"Non-profit, patient support needed"},
+    {id:3,name:"Summit Logistics",account:"ACC-0043",contact:"Priya Naidoo",email:"priya@summit.co.za",phone:"+27 83 999 1122",status:"Active",notes:"High volume queries"},
+  ];
+  tickets = [
+    {id:1,ref:"TKT-001",clientId:1,subject:"Invoice dispute — March billing",type:"Billing",status:"Open",date:"2026-03-28",notes:"Client claims overcharge of R4,200"},
+    {id:2,ref:"TKT-002",clientId:2,subject:"Portal login not working",type:"Tech support",status:"Pending",date:"2026-03-30",notes:"Password reset sent, awaiting confirmation"},
+    {id:3,ref:"TKT-003",clientId:3,subject:"Delivery SLA breach — Route 7",type:"Project",status:"New",date:"2026-04-01",notes:"Escalated by account manager"},
+  ];
+  persist();
+}
+
+function persist() {
+  localStorage.setItem('wfh_clients', JSON.stringify(clients));
+  localStorage.setItem('wfh_tickets', JSON.stringify(tickets));
+}
+
+// ─── API KEY ────────────────────────────────────────────────────────────────
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k) { toast('Please enter your API key'); return; }
+  apiKey = k;
+  localStorage.setItem('wfh_apikey', k);
+  document.getElementById('setup-overlay').style.display = 'none';
+  updateApiStatus();
+  toast('API key saved — AI features are ready');
+}
+function skipSetup() {
+  document.getElementById('setup-overlay').style.display = 'none';
+}
+function updateApiStatus() {
+  const dot = document.getElementById('api-dot');
+  const lbl = document.getElementById('api-label');
+  if (apiKey) { dot.style.background = '#22c55e'; lbl.textContent = 'AI connected'; }
+  else { dot.style.background = '#e5e7eb'; lbl.textContent = 'No API key set'; }
+}
+
+// ─── NAVIGATION ─────────────────────────────────────────────────────────────
+function goto(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector(`[onclick="goto('${name}')"]`).classList.add('active');
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'inbox') populateTicketLinkDropdown();
+  if (name === 'tickets') { populateClientFilter(); renderTickets(); }
+  if (name === 'clients') renderClients();
+  if (name === 'compose') populateComposeDropdowns();
+}
+
+// ─── STATS ───────────────────────────────────────────────────────────────────
+function updateStats() {
+  const open = tickets.filter(t => t.status === 'Open' || t.status === 'New').length;
+  const pending = tickets.filter(t => t.status === 'Pending').length;
+  const active = clients.filter(c => c.status === 'Active').length;
+  document.getElementById('ds-clients').textContent = active;
+  document.getElementById('ds-total').textContent = tickets.length;
+  document.getElementById('ds-open').textContent = open;
+  document.getElementById('ds-pending').textContent = pending;
+  document.getElementById('nb-tickets').textContent = open + pending;
+  document.getElementById('nb-inbox').textContent = '0';
+}
+
+// ─── DASHBOARD ───────────────────────────────────────────────────────────────
+function renderDashboard() {
+  updateStats();
+  const recent = [...tickets].sort((a,b) => b.id - a.id).slice(0, 6);
+  document.getElementById('dash-tickets').innerHTML = recent.map(t => {
+    const cl = clients.find(c => c.id === t.clientId);
+    const bcls = {New:'badge-new',Open:'badge-open',Closed:'badge-closed',Pending:'badge-pending'}[t.status]||'badge-pending';
+    return `<tr><td class="mono">${t.ref}</td><td>${cl ? cl.name : '—'}</td><td><span class="badge ${bcls}">${t.status}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty-state">No tickets yet</td></tr>';
+
+  document.getElementById('dash-clients').innerHTML = clients.slice(0, 6).map(c => {
+    const open = tickets.filter(t => t.clientId === c.id && t.status !== 'Closed').length;
+    return `<tr><td>${c.name}</td><td class="mono muted">${c.account}</td><td>${open}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" class="empty-state">No clients yet</td></tr>';
+}
+
+// ─── INBOX / EMAIL ANALYSIS ──────────────────────────────────────────────────
+let attachmentText = '';
+let attachmentName = '';
+
+function handleFile(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    document.getElementById('email-paste').value = ev.target.result;
+    document.getElementById('email-file-name').textContent = '✓ ' + f.name;
+    toast('Email loaded — click Analyse');
+  };
+  r.readAsText(f);
+}
+function handleDrop(e) {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => { document.getElementById('email-paste').value = ev.target.result; document.getElementById('email-file-name').textContent = '✓ ' + f.name; };
+  r.readAsText(f);
+}
+function handleAttach(e) {
+  const f = e.target.files[0]; if (!f) return;
+  attachmentName = f.name;
+  document.getElementById('attach-file-name').textContent = '✓ ' + f.name;
+  if (f.type.startsWith('image/')) {
+    const r = new FileReader();
+    r.onload = ev => { attachmentText = '[IMAGE ATTACHMENT: ' + f.name + ' — will be described by AI based on filename and context]'; };
+    r.readAsDataURL(f);
+  } else {
+    const r = new FileReader();
+    r.onload = ev => { attachmentText = ev.target.result.slice(0, 2000); };
+    r.readAsText(f);
+  }
+  toast('Attachment loaded: ' + f.name);
+}
+function handleAttachDrop(e) {
+  e.preventDefault();
+  const dt = new DataTransfer();
+  dt.items.add(e.dataTransfer.files[0]);
+  document.getElementById('attach-input').files = dt.files;
+  handleAttach({ target: document.getElementById('attach-input') });
+}
+
+function populateTicketLinkDropdown() {
+  const sel = document.getElementById('inbox-ticket-link');
+  const open = tickets.filter(t => t.status !== 'Closed');
+  sel.innerHTML = '<option value="">— open a new ticket —</option>' + open.map(t => {
+    const cl = clients.find(c => c.id === t.clientId);
+    return `<option value="${t.id}">${t.ref} · ${cl?.name||''} · ${t.subject.slice(0,40)}</option>`;
+  }).join('');
+}
+
+function clearInbox() {
+  document.getElementById('email-paste').value = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('attach-input').value = '';
+  document.getElementById('email-file-name').textContent = '';
+  document.getElementById('attach-file-name').textContent = '';
+  attachmentText = ''; attachmentName = '';
+  clearAnalysis();
+}
+function clearAnalysis() {
+  document.getElementById('ai-analysis').style.display = 'none';
+  lastAnalysis = {};
+}
+
+async function analyzeEmail() {
+  if (!apiKey) { document.getElementById('setup-overlay').style.display = 'flex'; return; }
+  const content = document.getElementById('email-paste').value.trim();
+  if (!content) { toast('Please paste or upload an email first'); return; }
+
+  const btn = document.getElementById('analyse-btn');
+  btn.innerHTML = '<span class="spinner"></span> Reading email...';
+  btn.disabled = true;
+
+  const attachSection = attachmentText ? `\n\nATTACHMENT (${attachmentName}):\n${attachmentText}` : '';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1600,
+        system: `You are a smart helpdesk assistant. Analyse the email (and attachment if provided). Return ONLY valid JSON, no markdown, no backticks. Use exactly this shape:
+{
+  "type": "e.g. Billing query, Payment request, Technical support, Complaint, Onboarding, General query, Document request",
+  "urgency": "Low|Medium|High",
+  "sentiment": "Positive|Neutral|Frustrated|Urgent",
+  "should_escalate": true|false,
+  "sla_hours": number (suggested response time in hours e.g. 4, 8, 24, 48),
+  "summary": "1 sentence plain English — what this email is about",
+  "payment_required": true|false,
+  "payment_amount": "extracted amount with currency or empty string",
+  "payment_due_date": "extracted due date or empty string",
+  "key_names": ["person or company names found"],
+  "key_dates": ["dates found"],
+  "key_amounts": ["monetary amounts found"],
+  "attachment_summary": "what the attachment contains in 1-2 sentences, or empty string if none",
+  "client_guess": "company or sender name",
+  "subject_guess": "short subject line for a ticket",
+  "steps": ["specific action step 1","specific action step 2","specific action step 3","specific action step 4","specific action step 5"],
+  "reply_draft": "professional plain text reply email body signed off as Support Team"
+}`,
+        messages: [{ role: 'user', content: `Analyse this email:\n\n${content.slice(0, 3000)}${attachSection}` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.find(b => b.type === 'text')?.text || '{}';
+    let p;
+    try { p = JSON.parse(raw); } catch {
+      p = { type:'General query', urgency:'Medium', sentiment:'Neutral', should_escalate:false, sla_hours:24, summary:raw.slice(0,150), payment_required:false, payment_amount:'', payment_due_date:'', key_names:[], key_dates:[], key_amounts:[], attachment_summary:'', client_guess:'', subject_guess:'Email query', steps:['Review email','Identify account','Take action','Follow up'], reply_draft:'Thank you for your email. We will respond shortly.\n\nKind regards,\nSupport Team' };
+    }
+    lastAnalysis = p;
+
+    // Detection grid cards
+    const urgColor = p.urgency==='High'?'var(--danger)':p.urgency==='Medium'?'var(--warn)':'var(--accent)';
+    const urgBg = p.urgency==='High'?'var(--danger-bg)':p.urgency==='Medium'?'var(--warn-bg)':'var(--accent-light)';
+    const slaBg = p.sla_hours<=4?'var(--danger-bg)':p.sla_hours<=24?'var(--warn-bg)':'var(--accent-light)';
+    const slaColor = p.sla_hours<=4?'var(--danger)':p.sla_hours<=24?'var(--warn)':'var(--accent-text)';
+    document.getElementById('detect-grid').innerHTML = `
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Query type</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${p.type||'Unknown'}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">${p.summary||''}</div>
+      </div>
+      <div style="background:${urgBg};border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Urgency</div>
+        <div style="font-size:14px;font-weight:600;color:${urgColor}">${p.urgency||'Medium'}</div>
+        <div style="font-size:11px;color:${urgColor};margin-top:4px">Sentiment: ${p.sentiment||'Neutral'}</div>
+      </div>
+      <div style="background:${slaBg};border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:6px">Respond within</div>
+        <div style="font-size:14px;font-weight:600;color:${slaColor}">${p.sla_hours} hours</div>
+        <div style="font-size:11px;color:${slaColor};margin-top:4px">${p.should_escalate?'⚠ Escalate this':'No escalation needed'}</div>
+      </div>
+      ${p.payment_required ? `
+      <div style="background:var(--danger-bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;grid-column:span 3">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--danger);margin-bottom:6px">💳 Payment required — see attached</div>
+        <div style="display:flex;gap:24px;flex-wrap:wrap">
+          <div><span style="font-size:11px;color:var(--text2)">Amount: </span><span style="font-size:15px;font-weight:600;color:var(--danger);font-family:var(--mono)">${p.payment_amount||'See attachment'}</span></div>
+          ${p.payment_due_date?`<div><span style="font-size:11px;color:var(--text2)">Due: </span><span style="font-size:13px;font-weight:600;color:var(--danger)">${p.payment_due_date}</span></div>`:''}
+        </div>
+      </div>` : ''}
+    `;
+
+    // Key info
+    const info = [];
+    if (p.key_names?.length) info.push(`<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase">Names: </span>${p.key_names.join(', ')}</div>`);
+    if (p.key_dates?.length) info.push(`<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase">Dates: </span>${p.key_dates.join(', ')}</div>`);
+    if (p.key_amounts?.length) info.push(`<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase">Amounts: </span><strong style="font-family:var(--mono)">${p.key_amounts.join(', ')}</strong></div>`);
+    if (p.client_guess) info.push(`<div><span style="font-size:11px;color:var(--text3);font-weight:600;text-transform:uppercase">Likely client: </span>${p.client_guess}</div>`);
+    document.getElementById('ai-keyinfo-box').innerHTML = info.length ? info.join('') : '<span style="color:var(--text3)">No specific key data detected</span>';
+
+    // Attachment
+    if (p.attachment_summary) {
+      document.getElementById('attach-section').style.display = 'block';
+      document.getElementById('ai-attach-box').textContent = p.attachment_summary;
+    } else { document.getElementById('attach-section').style.display = 'none'; }
+
+    // Steps
+    document.getElementById('ai-steps-box').innerHTML = (p.steps||[]).map((s,i)=>
+      `<div class="flow-step"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></div>`).join('');
+
+    // Reply
+    document.getElementById('ai-reply-box').textContent = p.reply_draft || '';
+
+    // Ticket action button
+    const linkedTicketId = document.getElementById('inbox-ticket-link').value;
+    const ticketBtn = document.getElementById('ticket-action-btn');
+    if (linkedTicketId) {
+      ticketBtn.textContent = 'Update linked ticket';
+      ticketBtn.onclick = () => updateLinkedTicket(parseInt(linkedTicketId));
+    } else {
+      ticketBtn.textContent = 'Create ticket';
+      ticketBtn.onclick = createTicketFromEmail;
+    }
+
+    document.getElementById('ai-analysis').style.display = 'block';
+    document.getElementById('ai-analysis').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch (err) {
+    toast('Error: ' + (err.message || 'Could not connect to AI'));
+  } finally {
+    btn.innerHTML = 'Analyse with AI';
+    btn.disabled = false;
+  }
+}
+
+function createTicketFromEmail() {
+  showTicketForm(null, lastAnalysis);
+  goto('tickets');
+}
+
+function updateLinkedTicket(id) {
+  const t = tickets.find(x => x.id === id);
+  if (!t) return;
+  if (lastAnalysis.summary) t.notes = (t.notes ? t.notes + '\n\n' : '') + '[Email update] ' + lastAnalysis.summary;
+  if (lastAnalysis.urgency === 'High') t.status = 'Open';
+  persist();
+  toast('Ticket ' + t.ref + ' updated from email');
+  goto('tickets');
+}
+
+function loadReplyToCompose() {
+  goto('compose');
+  populateComposeDropdowns();
+  document.getElementById('comp-type').value = 'reply';
+  document.getElementById('comp-context').value = document.getElementById('email-paste').value.slice(0, 500);
+  if (lastAnalysis.reply_draft) {
+    document.getElementById('compose-result').style.display = 'block';
+    document.getElementById('comp-subject').value = 'Re: ' + (lastAnalysis.subject_guess || 'Your enquiry');
+    document.getElementById('comp-body').value = lastAnalysis.reply_draft;
+  }
+}
+
+// ─── TICKETS ─────────────────────────────────────────────────────────────────
+function nextRef() {
+  const nums = tickets.map(t => parseInt(t.ref.replace('TKT-', '')) || 0);
+  return 'TKT-' + String((nums.length ? Math.max(...nums) : 0) + 1).padStart(3, '0');
+}
+function populateClientFilter() {
+  const sel = document.getElementById('t-filter-client');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">All clients</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  sel.value = cur;
+}
+function renderTickets() {
+  const q = (document.getElementById('t-search')?.value || '').toLowerCase();
+  const fs = document.getElementById('t-filter-status')?.value || '';
+  const fc = document.getElementById('t-filter-client')?.value || '';
+  let rows = tickets.filter(t => {
+    if (fs && t.status !== fs) return false;
+    if (fc && String(t.clientId) !== fc) return false;
+    if (q && !t.subject.toLowerCase().includes(q) && !t.ref.toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a, b) => b.id - a.id);
+  document.getElementById('ticket-body').innerHTML = rows.length ? rows.map(t => {
+    const cl = clients.find(c => c.id === t.clientId);
+    const bcls = {New:'badge-new',Open:'badge-open',Closed:'badge-closed',Pending:'badge-pending'}[t.status] || 'badge-pending';
+    return `<tr>
+      <td class="mono">${t.ref}</td>
+      <td><div class="client-cell"><div class="avatar">${(cl?.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2)}</div>${cl?.name||'Unknown'}</div></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</td>
+      <td><span style="font-size:11px;color:var(--text2)">${t.type}</span></td>
+      <td><span class="badge ${bcls}">${t.status}</span></td>
+      <td class="mono muted" style="font-size:11px">${t.date||'—'}</td>
+      <td><button class="btn btn-sm" onclick="editTicket(${t.id})">Edit</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No tickets found</td></tr>';
+  updateStats();
+}
+
+function showTicketForm(id = null, prefill = {}) {
+  editingTicketId = id;
+  const tf = document.getElementById('tf-client');
+  tf.innerHTML = clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  if (id) {
+    const t = tickets.find(x => x.id === id);
+    document.getElementById('tf-title').textContent = 'Edit ticket';
+    document.getElementById('tf-ref').value = t.ref;
+    document.getElementById('tf-client').value = t.clientId;
+    document.getElementById('tf-subject').value = t.subject;
+    document.getElementById('tf-type').value = t.type;
+    document.getElementById('tf-status').value = t.status;
+    document.getElementById('tf-date').value = t.date || '';
+    document.getElementById('tf-notes').value = t.notes || '';
+    document.getElementById('tf-delete-btn').style.display = 'inline-block';
+    fillTicketAccount();
+  } else {
+    document.getElementById('tf-title').textContent = 'New ticket';
+    document.getElementById('tf-ref').value = nextRef();
+    document.getElementById('tf-subject').value = prefill.subject_guess || '';
+    document.getElementById('tf-type').value = prefill.type || 'General query';
+    document.getElementById('tf-status').value = 'New';
+    document.getElementById('tf-date').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('tf-notes').value = prefill.summary || '';
+    document.getElementById('tf-delete-btn').style.display = 'none';
+    fillTicketAccount();
+  }
+  document.getElementById('ticket-list-view').style.display = 'none';
+  document.getElementById('ticket-form-view').style.display = 'block';
+}
+function fillTicketAccount() {
+  const cid = parseInt(document.getElementById('tf-client').value);
+  const cl = clients.find(c => c.id === cid);
+  document.getElementById('tf-account').value = cl?.account || '';
+}
+document.addEventListener('change', e => { if (e.target.id === 'tf-client') fillTicketAccount(); });
+function hideTicketForm() {
+  document.getElementById('ticket-list-view').style.display = 'block';
+  document.getElementById('ticket-form-view').style.display = 'none';
+  renderTickets();
+}
+function editTicket(id) { showTicketForm(id); }
+function saveTicket() {
+  const subject = document.getElementById('tf-subject').value.trim();
+  if (!subject) { toast('Subject is required'); return; }
+  const t = {
+    ref: document.getElementById('tf-ref').value,
+    clientId: parseInt(document.getElementById('tf-client').value),
+    subject, type: document.getElementById('tf-type').value,
+    status: document.getElementById('tf-status').value,
+    date: document.getElementById('tf-date').value,
+    notes: document.getElementById('tf-notes').value,
+  };
+  if (editingTicketId) {
+    Object.assign(tickets.find(x => x.id === editingTicketId), t);
+    toast('Ticket updated');
+  } else {
+    tickets.push({ id: Date.now(), ...t });
+    toast('Ticket created: ' + t.ref);
+  }
+  persist(); hideTicketForm();
+}
+function deleteTicket() {
+  if (!confirm('Delete this ticket?')) return;
+  tickets = tickets.filter(t => t.id !== editingTicketId);
+  persist(); hideTicketForm(); toast('Ticket deleted');
+}
+
+// ─── CLIENTS ─────────────────────────────────────────────────────────────────
+function renderClients() {
+  const q = (document.getElementById('c-search')?.value || '').toLowerCase();
+  const fs = document.getElementById('c-filter-status')?.value || '';
+  let rows = clients.filter(c => {
+    if (fs && c.status !== fs) return false;
+    if (q && !c.name.toLowerCase().includes(q) && !c.account.toLowerCase().includes(q) && !c.contact.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('client-body').innerHTML = rows.length ? rows.map(c => {
+    const tc = tickets.filter(t => t.clientId === c.id).length;
+    const open = tickets.filter(t => t.clientId === c.id && t.status !== 'Closed').length;
+    const bcls = c.status === 'Active' ? 'badge-closed' : c.status === 'On hold' ? 'badge-open' : 'badge-pending';
+    return `<tr>
+      <td><div class="client-cell"><div class="avatar">${c.name.split(' ').map(w=>w[0]).join('').slice(0,2)}</div><div><div style="font-weight:500">${c.name}</div></div></div></td>
+      <td class="mono muted">${c.account}</td>
+      <td>${c.contact||'—'}</td>
+      <td style="font-size:12px;color:var(--info)">${c.email||'—'}</td>
+      <td style="font-size:12px">${tc} total · ${open} open</td>
+      <td><span class="badge ${bcls}">${c.status}</span></td>
+      <td><button class="btn btn-sm" onclick="editClient(${c.id})">Edit</button></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text3)">No clients found</td></tr>';
+}
+function showClientForm(id = null) {
+  editingClientId = id;
+  if (id) {
+    const c = clients.find(x => x.id === id);
+    document.getElementById('cf-title').textContent = 'Edit client';
+    document.getElementById('cf-name').value = c.name;
+    document.getElementById('cf-account').value = c.account;
+    document.getElementById('cf-contact').value = c.contact || '';
+    document.getElementById('cf-email').value = c.email || '';
+    document.getElementById('cf-phone').value = c.phone || '';
+    document.getElementById('cf-status').value = c.status;
+    document.getElementById('cf-notes').value = c.notes || '';
+    document.getElementById('cf-delete-btn').style.display = 'inline-block';
+  } else {
+    document.getElementById('cf-title').textContent = 'Add client';
+    ['cf-name','cf-account','cf-contact','cf-email','cf-phone','cf-notes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('cf-status').value = 'Active';
+    document.getElementById('cf-delete-btn').style.display = 'none';
+  }
+  document.getElementById('client-list-view').style.display = 'none';
+  document.getElementById('client-form-view').style.display = 'block';
+}
+function editClient(id) { showClientForm(id); }
+function hideClientForm() {
+  document.getElementById('client-list-view').style.display = 'block';
+  document.getElementById('client-form-view').style.display = 'none';
+  renderClients();
+}
+function saveClient() {
+  const name = document.getElementById('cf-name').value.trim();
+  if (!name) { toast('Client name is required'); return; }
+  const nextAcc = 'ACC-' + String((clients.length + 1)).padStart(4, '0');
+  const data = {
+    name, account: document.getElementById('cf-account').value || nextAcc,
+    contact: document.getElementById('cf-contact').value,
+    email: document.getElementById('cf-email').value,
+    phone: document.getElementById('cf-phone').value,
+    status: document.getElementById('cf-status').value,
+    notes: document.getElementById('cf-notes').value,
+  };
+  if (editingClientId) { Object.assign(clients.find(c => c.id === editingClientId), data); toast('Client updated'); }
+  else { clients.push({ id: Date.now(), ...data }); toast('Client added: ' + name); }
+  persist(); hideClientForm(); updateStats();
+}
+function deleteClient() {
+  if (!confirm('Delete this client? Their tickets will remain.')) return;
+  clients = clients.filter(c => c.id !== editingClientId);
+  persist(); hideClientForm(); toast('Client deleted'); updateStats();
+}
+
+// ─── COMPOSE ─────────────────────────────────────────────────────────────────
+function populateComposeDropdowns() {
+  const sel = document.getElementById('comp-client');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Select client...</option>' + clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+function fillComposeClient() {
+  const id = document.getElementById('comp-client').value;
+  const cl = clients.find(c => c.id == id);
+  if (cl) document.getElementById('comp-to').value = cl.email || '';
+}
+function clearCompose() {
+  ['comp-context','comp-to','comp-ref'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('compose-result').style.display = 'none';
+}
+
+async function generateEmail() {
+  if (!apiKey) { document.getElementById('setup-overlay').style.display = 'flex'; return; }
+  const context = document.getElementById('comp-context').value.trim();
+  if (!context) { toast('Add some context so the AI knows what to write'); return; }
+  const clientId = document.getElementById('comp-client').value;
+  const cl = clients.find(c => c.id == clientId);
+  const type = document.getElementById('comp-type').value;
+  const ref = document.getElementById('comp-ref').value;
+
+  const btn = document.getElementById('gen-btn');
+  btn.innerHTML = '<span class="spinner"></span> Generating...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: 'You write professional support/helpdesk emails. Return ONLY valid JSON with keys "subject" and "body". No markdown, no backticks. Be professional, clear, and concise. Sign off with "Kind regards,\nSupport Team".',
+        messages: [{ role: 'user', content: `Write a ${type} email.
+Client: ${cl?.name || 'valued client'}
+Contact: ${cl?.contact || ''}
+Ticket ref: ${ref || 'N/A'}
+Context and key points: ${context}` }]
+      })
+    });
+    const data = await res.json();
+    const raw = data.content?.find(b => b.type === 'text')?.text || '{}';
+    let p;
+    try { p = JSON.parse(raw); } catch { p = { subject: `Re: ${ref || 'Your enquiry'}`, body: raw }; }
+    document.getElementById('comp-subject').value = p.subject || '';
+    document.getElementById('comp-body').value = p.body || '';
+    document.getElementById('compose-result').style.display = 'block';
+    document.getElementById('comp-subject').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    toast('Error: ' + (err.message || 'Could not connect'));
+  } finally {
+    btn.innerHTML = 'Generate with AI';
+    btn.disabled = false;
+  }
+}
+function copyEmail() {
+  const s = document.getElementById('comp-subject').value;
+  const b = document.getElementById('comp-body').value;
+  navigator.clipboard.writeText(`Subject: ${s}\n\n${b}`).then(() => toast('Copied to clipboard'));
+}
+function openInGmail() {
+  const s = encodeURIComponent(document.getElementById('comp-subject').value);
+  const b = encodeURIComponent(document.getElementById('comp-body').value);
+  const to = encodeURIComponent(document.getElementById('comp-to').value);
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${to}&su=${s}&body=${b}`, '_blank');
+}
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+if (apiKey) {
+  document.getElementById('setup-overlay').style.display = 'none';
+  updateApiStatus();
+} else {
+  // show setup on first visit
+}
+renderDashboard();
+</script>
+</body>
+</html>
