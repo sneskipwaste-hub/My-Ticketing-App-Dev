@@ -232,7 +232,7 @@
     <div class="panel active" id="panel-dashboard">
       <div class="page-header">
         <div>
-          <div class="page-title">Hey Sendry 👋</div>
+          <div class="page-title">Hey Amanda 👋</div>
           <div class="page-sub">Welcome back — here's your dashboard overview</div>
         </div>
         <button class="btn btn-primary" onclick="goto('inbox')">+ Analyse email</button>
@@ -894,7 +894,6 @@ function deleteTicket() {
   tickets = tickets.filter(t => t.id !== editingTicketId);
   persist(); hideTicketForm(); toast('Ticket deleted');
 }
-
 // ─── CLIENTS ─────────────────────────────────────────────────────────────────
 function renderClients() {
   const q = (document.getElementById('c-search')?.value || '').toLowerCase();
